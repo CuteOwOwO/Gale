@@ -1,0 +1,6 @@
+google-genai
+mediapipe==0.10.14
+numpy
+opencv-python
+Pillow
+scipy
