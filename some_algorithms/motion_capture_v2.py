@@ -149,43 +149,41 @@ class DistinctPoseDetector:
         self.prev_landmarks = None
 
     def process(self, landmarks, frame, frame_idx):
-        # 1. 姿勢正規化
+        # 姿勢正規化
         current_pose_vec = get_normalized_landmarks(landmarks)
         
-        # 2. 計算瞬時速度 (基於正規化後的座標變化，比原始像素速度更準)
+        # 計算瞬時速度 (基於正規化後的座標變化)
         current_velocity = 0.0
         if self.prev_landmarks is not None:
             current_velocity = np.linalg.norm(current_pose_vec - self.prev_landmarks)
         self.prev_landmarks = current_pose_vec
         
-        # 存入緩衝區 (因為我們要回頭看過去幾幀是不是最低速)
+        # 存入 window (因為我們要回頭看過去幾幀是不是最低速)
         self.velocity_buffer.append(current_velocity)
         self.pose_buffer.append(current_pose_vec)
         self.frame_buffer.append(frame.copy())
         self.frame_index_buffer.append(frame_idx)
         
-        # 緩衝區還沒滿，先不判斷
         if len(self.velocity_buffer) < self.velocity_window:
             return False, None, 0.0, None
 
         # --- 核心邏輯 ---
         
-        # 我們檢查緩衝區的中間那一幀 (mid_idx)
+        # 檢查 window 的中間那一幀 (mid_idx)
         mid_idx = self.velocity_window // 2
         mid_velocity = self.velocity_buffer[mid_idx]
         mid_pose = self.pose_buffer[mid_idx]
         mid_frame = self.frame_buffer[mid_idx]
         mid_frame_idx = self.frame_index_buffer[mid_idx]
         
-        # 條件 A: 速度是局部極小值 (前後都比它快，代表動作頓點)
-        # 或者是速度極低 (趨近於靜止)
+        # Case 1: 速度是局部極小值 (代表動作頓點，或是速度極低、趨於靜止)
         velocities = np.array(self.velocity_buffer)
         is_local_min = (mid_velocity == np.min(velocities))
         is_very_slow = mid_velocity < self.very_slow_threshold # 絕對靜止閾值
         
         is_stable_moment = is_local_min or is_very_slow
 
-        # 條件 B: 與上一次抓拍的姿勢差異夠大 (避免重複抓拍)
+        # Case 2: 與上一次抓拍的姿勢差異夠大 (避免重複抓拍)
         if self.last_captured_pose is None:
             # 第一幀直接存
             self.last_captured_pose = mid_pose
