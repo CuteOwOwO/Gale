@@ -54,7 +54,7 @@ def label_ground_truth(video_path):
             # 2. 狀態
             status_text = "PAUSED (A/D to step)" if is_paused else "PLAYING"
             cv2.putText(display_img, status_text, (30, 100), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255) if is_paused else (0, 255, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (75, 75, 75) if is_paused else (0, 255, 0), 2)
 
             # 3. 數量
             cv2.putText(display_img, f"Marked: {len(marked_frames)}", (30, 150), 
@@ -90,7 +90,7 @@ def label_ground_truth(video_path):
                     removed = marked_frames.pop()
                     print(f"[移除] Frame {removed}")
 
-            # --- 播放與跳幀控制 (修正後) ---
+            # --- 播放與跳幀控制 ---
             if not is_paused:
                 # 正常播放
                 ret, next_frame = cap.read()
@@ -100,10 +100,8 @@ def label_ground_truth(video_path):
                 else:
                     print("影片播放結束，自動暫停。")
                     is_paused = True
-                    # 修正：不要讀取超出範圍的幀，停留在最後一幀
                     current_frame_pos = max(0, total_frames - 1)
                     cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_pos)
-                    # 重新讀取最後一幀給 display_img 用
                     ret, frame = cap.read() 
             else:
                 # 暫停時的控制
