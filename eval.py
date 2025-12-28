@@ -128,7 +128,6 @@ def evaluate_nearest_neighbor(ground_truth, detected_frames):
     if not ground_truth: return
 
     print(f"\n=== 最終評測結果 (Nearest Neighbor) ===")
-    print(f"說明: 預測點 (Pred) -> 最近的標準答案 (Closest GT)")
     print(f"{'Pred':^6} | {'Closest GT':^10} | {'Error':^6}")
     print("-" * 32)
     
