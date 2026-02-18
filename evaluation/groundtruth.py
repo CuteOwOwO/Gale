@@ -1,3 +1,5 @@
+#人類自己標記哪裡關鍵
+
 import cv2
 import os
 

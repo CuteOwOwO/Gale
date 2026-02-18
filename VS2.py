@@ -1,9 +1,12 @@
+#可以看到實際畫面的版本，並且有骨架顯示，以及老師疊圖
+
 import cv2
 import mediapipe as mp
 import numpy as np
 
+
 # --- 📁 設定區 ---
-VIDEO_PATH = 'old.mp4'   
+VIDEO_PATH = 'mp4_home/old.mp4'   
 TARGET_FRAME = 151         
 VISIBILITY_THRESHOLD = 0.5 
 GHOST_ALPHA = 0.1  # 老師原圖的透明度

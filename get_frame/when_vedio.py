@@ -1,3 +1,6 @@
+#抓影片的關鍵動作
+
+
 import cv2
 import mediapipe as mp
 import numpy as np

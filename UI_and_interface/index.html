@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Pose - Home</title>
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+<body>
+
+    <header class="home-header">
+        <h1 class="home-title">JUST POSE</h1>
+        <a href="settings.html" class="settings-btn">⚙️</a>
+    </header>
+
+    <div class="card-container">
+        <div class="card" id="card-0">
+            <div class="loader-container">
+                <svg class="loader-svg" width="120" height="120" viewBox="0 0 100 100">
+                    <circle class="loader-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="loader-progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+            </div>
+            <div class="card-img-placeholder">
+                <img src="./static/towel.png" alt="毛巾操">
+            </div>
+            <div class="card-title">毛巾操</div>
+        </div>
+
+        <div class="card active" id="card-1">
+            <div class="loader-container">
+                <svg class="loader-svg" width="120" height="120" viewBox="0 0 100 100">
+                    <circle class="loader-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="loader-progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+            </div>
+            <div class="card-img-placeholder">
+                <img src="./static/taichi.png" alt="太極">
+            </div>
+            <div class="card-title">太極</div>
+        </div>
+
+        <div class="card" id="card-2">
+            <div class="loader-container">
+                <svg class="loader-svg" width="120" height="120" viewBox="0 0 100 100">
+                    <circle class="loader-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="loader-progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+            </div>
+            <div class="card-img-placeholder">
+                <span class="add-icon">+</span>
+            </div>
+            <div class="card-title">Add New</div>
+        </div>
+    </div>
+
+    <div class="footer-status">
+        <div class="status-item">
+            <span class="dot"></span> <span id="camera-status">Camera On</span>
+        </div>
+        <div class="status-item">
+            <span style="transform: rotate(45deg);">📶</span> WiFi Connected
+        </div>
+    </div>
+
+    <div id="virtual-hand"></div>
+
+    <script>
+        let activeIndex = 1; 
+        const cards = document.querySelectorAll('.card');
+        const statusText = document.getElementById('camera-status'); 
+        const virtualHand = document.getElementById('virtual-hand');
+        const dot = document.querySelector('.dot');
+
+        // === 狀態開關 ===
+        let isSystemActive = false; 
+        let confirmTimer = null;
+        const CONFIRM_DURATION = 3000; //
+        
+        // 圓周長常數 (2 * PI * 45)
+        const CIRCUMFERENCE = 283; 
+
+        const ws = new WebSocket("ws://localhost:8000/ws");
+
+        ws.onopen = () => {
+            console.log("已連線到 Python 後端");
+            dot.style.backgroundColor = "#00FF00";
+            dot.style.boxShadow = "0 0 15px #00FF00";
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.status) statusText.innerText = data.status;
+
+            // ===  只要有游標數據，就確保系統啟動 ===
+            if (data.hand_x !== undefined && data.hand_x !== -100) {
+                virtualHand.style.display = 'block';
+                virtualHand.style.left = data.hand_x + '%';
+                virtualHand.style.top = data.hand_y + '%'; 
+                console.log("系統啟動中... 游標位置:", data.hand_x, data.hand_y);
+                // 如果系統還沒啟動，或是游標剛回來，就啟動計時器
+                if (!isSystemActive) {
+                    console.log("偵測到手勢，系統啟動！");
+                    isSystemActive = true;
+                    startConfirmationTimer();
+                }
+            } else {
+                // 如果手不見了 (hand_x 可能傳回 -100 或 undefined)
+                if (isSystemActive) {
+                    virtualHand.style.display = 'none';
+                    isSystemActive = false;
+                    resetConfirmationTimer(); // 手放下就暫停倒數
+                }
+            }
+
+            // 處理左右切換
+            if (data.action === "left") moveSelection(-1);
+            else if (data.action === "right") moveSelection(1);
+        };
+
+        function moveSelection(direction) {
+            let nextIndex = activeIndex;
+
+            if (direction === -1 && activeIndex > 0) {
+                nextIndex--;
+            } else if (direction === 1 && activeIndex < cards.length - 1) {
+                nextIndex++;
+            }
+
+            // 如果沒有換卡片，就什麼都不做 (讓計時器繼續跑)
+            if (nextIndex === activeIndex) return;
+
+            // 真的換了卡片 -> 重置舊的 -> 更新索引 -> 開始新的
+            resetConfirmationTimer(); 
+            activeIndex = nextIndex;  
+            updateSelection();
+            
+            if (isSystemActive) {
+                startConfirmationTimer();
+            }
+        }
+
+        function updateSelection() {
+            cards.forEach((card, index) => {
+                if (index === activeIndex) card.classList.add('active');
+                else card.classList.remove('active');
+            });
+        }
+
+        // === 轉圈圈動畫===
+        function startConfirmationTimer() {
+            if (!isSystemActive) return;
+
+            const activeCard = cards[activeIndex];
+            const progressCircle = activeCard.querySelector('.loader-progress');
+
+            
+            progressCircle.style.strokeDasharray = CIRCUMFERENCE;
+            
+            // 先重置 (設為全滿或全空，這裡設為 283 代表隱藏/空)
+            progressCircle.style.transition = 'none';
+            progressCircle.style.strokeDashoffset = CIRCUMFERENCE; 
+            
+            // 強制瀏覽器重繪 (Reflow)，確保上面的 none transition 生效
+            progressCircle.getBoundingClientRect(); 
+
+            // 開始動畫
+            setTimeout(() => {
+                progressCircle.style.transition = `stroke-dashoffset ${CONFIRM_DURATION}ms linear`;
+                progressCircle.style.strokeDashoffset = '0'; // 跑到 0 代表轉滿一圈
+            }, 50);
+
+            // 設定跳轉
+            confirmTimer = setTimeout(() => {
+                console.log("確認選擇！跳轉中...");
+                
+                // 視覺回饋：轉滿後閃爍一下或變色 (可選)
+                progressCircle.style.stroke = "#00FF00"; 
+
+                // 根據 index 決定去哪 (這裡示範都去 game.html，你可以改)
+                if(activeIndex === 0) window.location.href = "game.html";
+                if(activeIndex === 1) window.location.href = "game.html";
+                if(activeIndex === 2) console.log("新增模式...");
+
+            }, CONFIRM_DURATION);
+        }
+
+        function resetConfirmationTimer() {
+            if (confirmTimer) {
+                clearTimeout(confirmTimer);
+                confirmTimer = null;
+            }
+
+            // 重置所有卡片的圈圈
+            cards.forEach(card => {
+                const progress = card.querySelector('.loader-progress');
+                progress.style.transition = 'none';
+                progress.style.strokeDashoffset = CIRCUMFERENCE; // 歸零
+                progress.style.stroke = ""; // 復原顏色
+            });
+        }
+        
+        // 鍵盤除錯用
+        document.addEventListener('keydown', (e) => {
+            if (!isSystemActive) { isSystemActive = true; startConfirmationTimer(); } // 鍵盤動一下也算啟動
+            if (e.key === 'ArrowLeft') moveSelection(-1);
+            if (e.key === 'ArrowRight') moveSelection(1);
+        });
+    </script>
+</body>
+</html>

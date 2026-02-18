@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Pose - Settings</title>
+    <link rel="stylesheet" href="./static/style.css">
+</head>
+<body>
+    <header class="settings-header">
+        <a href="index.html" class="back-btn">⬅ Back</a>
+        <h1>SETTINGS</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h2>🎙️ AI Voice Cloning</h2>
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 3rem;">📂</div>
+                <div>點擊或拖曳上傳音檔 (WAV/MP3)</div>
+                <div style="font-size: 0.8rem; color: #aaa;">建議長度 10~15 秒</div>
+                <input type="file" id="fileInput" style="display: none;" accept="audio/*">
+            </div>
+            <div class="text-input-area">
+                <div style="margin-bottom: 10px; font-weight: bold; color: #666;">音檔對應文字 (Transcript)</div>
+                <textarea placeholder="請輸入您剛剛上傳的音檔中，實際上唸了什麼內容..."></textarea>
+            </div>
+            <button class="action-btn">開始訓練模型 ✨</button>
+        </div>
+
+        <div class="right-panel">
+            <div class="setting-card">
+                <div class="icon-box">🦴</div>
+                <div class="setting-content">
+                    <div class="setting-title">顯示骨架</div>
+                    <div style="font-size: 0.9rem; color: #888;">即時顯示關節點位</div>
+                </div>
+                <label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+
+            <div class="setting-card">
+                <div class="icon-box">👻</div>
+                <div class="setting-content">
+                    <div class="setting-title">幽靈老師</div>
+                    <div style="font-size: 0.9rem; color: #888;">半透明疊圖引導</div>
+                </div>
+                <label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+
+            <div class="setting-card" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; align-items: center; gap: 20px; width: 100%;">
+                    <div class="icon-box">🔊</div>
+                    <div class="setting-title">系統音量</div>
+                </div>
+                <input type="range" min="0" max="100" value="80" class="volume-slider">
+            </div>
+
+            <div class="setting-card hover-effect" style="cursor: pointer; border: 2px solid transparent;">
+                <div class="icon-box" style="background-color: #E8F0FE; color: #1967D2;">⚙️</div>
+                <div class="setting-content">
+                    <div class="setting-title">其他設定</div>
+                    <div style="font-size: 0.9rem; color: #888;">自訂計分部位 (家具遮擋)</div>
+                </div>
+                <div style="font-size: 1.5rem; color: #ccc; font-weight: bold; margin-right: 10px;">›</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

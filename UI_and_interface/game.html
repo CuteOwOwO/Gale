@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Pose - Level Selection</title>
+    <style>
+        /* --- 1. 變數設定 (提取自你的截圖風格) --- */
+        :root {
+            --bg-color: #FFF5E6; /* 暖米色背景 */
+            --title-color: #6B8EAD; /* 標題藍灰色 */
+            --card-bg: #FFFFFF;
+            --highlight-color: #F4A261; /* 選中時的橘金色 */
+            --text-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- 2. 基礎重置 --- */
+        * {
+            box-sizing: border-box;
+            user-select: none; /* 防止選取文字，像App一樣 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden; /* 隱藏捲軸 */
+        }
+
+        /* --- 3. 頂部標題與狀態 --- */
+        .header {
+            margin-top: 200px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .app-title {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--title-color);
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        }
+
+        .sub-title {
+            font-size: 1.2rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* --- 4. 關卡滑動容器 (核心區域) --- */
+        .carousel-container {
+            flex: 1; /* 佔據剩餘空間 */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+            /* 透視感，讓切換時有點3D效果 (選用) */
+            perspective: 1000px; 
+        }
+
+            /* 軌道：實際移動的長條 */
+        .level-track {
+            display: flex;
+            /* padding-left 被拿掉了 */
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+            /* 確保軌道內容不換行，讓卡片排成一列 */
+            width: max-content; 
+        }
+
+        /* --- 5. 關卡卡片設計 --- */
+        .level-card {
+            /* 固定大小，類似手機畫面比例 */
+            width: 280px;
+            height: 380px;
+            background: var(--card-bg);
+            border-radius: 25px;
+            margin: 0 20px; /* 卡片間距 */
+            padding: 20px;
+            
+            /* 視覺裝飾 */
+            box-shadow: 0 10px 25px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            
+            /* 動畫過渡 */
+            transition: all 0.3s ease;
+            position: relative;
+            opacity: 0.6; /* 非選中狀態較淡 */
+            transform: scale(0.9); /* 非選中狀態較小 */
+            border: 4px solid transparent;
+        }
+
+        /* 鎖定狀態 */
+        .level-card.locked {
+            filter: grayscale(100%);
+            background: #f0f0f0;
+        }
+
+        /* 當前選中狀態 (由 JS添加此 class) */
+        .level-card.active {
+            opacity: 1;
+            transform: scale(1.1); /* 放大 */
+            border-color: var(--highlight-color); /* 亮框 */
+            box-shadow: 0 15px 35px rgba(244, 162, 97, 0.4);
+            z-index: 5;
+        }
+
+        /* 卡片內部元素佔位符 */
+        .card-image-placeholder {
+            width: 100%;
+            height: 180px;
+            background-color: #E0E7EF;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #FFF;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--title-color);
+            margin: 10px 0;
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 5px;
+            font-size: 1.5rem;
+        }
+        
+        .star { color: #DDD; } /* 未獲得的星星 */
+        .star.filled { color: #FFD700; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* 鎖頭圖示 */
+        .lock-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: #888;
+            opacity: 0;
+        }
+        .level-card.locked .lock-icon { opacity: 0.8; }
+
+        /* --- 6. 底部狀態列 --- */
+        .footer {
+            height: 60px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50; /* 綠燈 */
+            border-radius: 50%;
+        }
+
+        /* --- 7. 按鍵提示 (給開發者看) --- */
+        .controls-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="app-title">JUST POSE</h1>
+        <div class="sub-title">請選擇運動關卡</div>
+    </div>
+
+    <div class="carousel-container">
+        <div class="level-track" id="track">
+            </div>
+    </div>
+
+    <div class="footer">
+        <div class="status-item">
+            <div class="dot"></div> Camera On
+        </div>
+        <div class="status-item">
+            <span style="color: #4A90E2;">📶</span> WiFi Connected
+        </div>
+    </div>
+
+    <div class="controls-hint">鍵盤操控: ← 左 | 右 → | Enter 選擇</div>
+
+    <script>
+        // 1. 模擬關卡資料 (Data)
+        // 這些資料未來可以從你的後端或設定檔讀取
+        const levels = [
+            { id: 1, title: "暖身伸展", stars: 3, locked: false, icon: "🧘" },
+            { id: 2, title: "深蹲訓練", stars: 2, locked: false, icon: "🦵" },
+            { id: 3, title: "核心平衡", stars: 0, locked: false, icon: "⚖️" },
+            { id: 4, title: "開合跳",   stars: 0, locked: true,  icon: "🏃" },
+            { id: 5, title: "弓箭步",   stars: 0, locked: true,  icon: "🦶" },
+            { id: 6, title: "全身燃脂", stars: 0, locked: true,  icon: "🔥" },
+            { id: 7, title: "冷卻放鬆", stars: 0, locked: true,  icon: "🧊" }
+        ];
+
+        let currentIndex = 0; // 目前選中的索引
+        const track = document.getElementById('track');
+        
+        // 2. 初始化：生成 HTML
+        function init() {
+            levels.forEach((level, index) => {
+                const card = document.createElement('div');
+                card.className = `level-card ${level.locked ? 'locked' : ''}`;
+                // 給每個卡片一個 ID 方便之後操作
+                card.id = `card-${index}`;
+
+                // 產生星星 HTML
+                let starsHtml = '';
+                for(let i=0; i<3; i++) {
+                    starsHtml += `<span class="star ${i < level.stars ? 'filled' : ''}">★</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="card-title">Level ${level.id}</div>
+                    <div class="card-image-placeholder">
+                        ${level.icon}
+                        <div class="lock-icon">🔒</div>
+                    </div>
+                    <div class="card-title" style="font-size: 1.2rem;">${level.title}</div>
+                    <div class="stars-container">${starsHtml}</div>
+                `;
+                
+                track.appendChild(card);
+            });
+
+            updateLayout();
+        }
+
+        // 3. 核心邏輯：更新畫面佈局與選中狀態
+        function updateLayout() {
+            const cards = document.querySelectorAll('.level-card');
+            
+            // 定義卡片總寬度 = 卡片寬(280) + 左邊距(20) + 右邊距(20)
+            const cardTotalWidth = 320; 
+            
+            // A. 更新樣式 (放大縮小效果)
+            cards.forEach((card, index) => {
+                if (index === currentIndex) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            // B. 計算位移 (精確置中公式)
+            // 螢幕中心 - (目前是第幾張 * 每張寬度) - (半張卡片的寬度以修正中心點)
+            const screenCenter = window.innerWidth / 2;
+            const cardHalfWidth = cardTotalWidth / 2;
+            
+            // 計算軌道應該往左移動多少距離
+            const translateX = screenCenter - (currentIndex * cardTotalWidth) - cardHalfWidth;
+
+            track.style.transform = `translateX(${translateX}px)`;
+        }
+
+        // 4. 鍵盤事件監聽
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (currentIndex < levels.length - 1) {
+                    currentIndex++;
+                    updateLayout();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateLayout();
+                }
+            } else if (e.key === 'Enter') {
+                const level = levels[currentIndex];
+                if (level.locked) {
+                    alert(`Level ${level.id} 尚未解鎖！`);
+                    // 未來這裡可以加入「搖晃」動畫代表鎖定
+                } else {
+                    // 這裡觸發選中後的動作，例如進入遊戲
+                    // 模擬一個簡單的點擊特效
+                    const card = document.getElementById(`card-${currentIndex}`);
+                    card.style.transform = "scale(0.95)";
+                    setTimeout(() => {
+                        card.style.transform = "scale(1.1)";
+                        alert(`進入關卡：${level.title}`);
+                    }, 100);
+                }
+            }
+        });
+
+        // 5. 視窗大小改變時重新計算位置 (RWD)
+        window.addEventListener('resize', updateLayout);
+
+        // 啟動
+        init();
+
+    </script>
+</body>
+</html>

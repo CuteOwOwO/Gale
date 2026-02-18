@@ -1,0 +1,284 @@
+/* static/style.css */
+
+/* ========== 全局共用設定 (Global) ========== */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #FFF8E7 0%, #FFE4C4 100%);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    overflow: hidden;
+}
+
+header {
+    margin-bottom: 30px; /* 設定頁較小 */
+    text-align: center;
+    position: relative;
+    width: 100%;
+}
+
+/* 主頁面標題比較大，另外用 id 或 class 覆寫，這裡先設通用 */
+h1 {
+    color: #6A8CAF;
+    font-weight: 900;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 返回按鈕 (設定頁用) */
+.back-btn {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: #6A8CAF;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+.back-btn:hover { background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+/* ========== index.html 專用樣式 ========== */
+
+/* 首頁的大標題 */
+.home-header { margin-bottom: 60px; }
+.home-title { font-size: 5rem; letter-spacing: 4px; text-shadow: 3px 3px 6px rgba(0,0,0,0.15); }
+
+/* 設定按鈕 (首頁右上角) */
+.settings-btn {
+    position: absolute;
+    top: 0; /* 相對於 header */
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    text-decoration: none;
+    background: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.settings-btn:hover { transform: scale(1.1) translateY(-50%); }
+
+.card-container {
+    display: flex;
+    gap: 50px;
+    align-items: center;
+    perspective: 1000px;
+}
+
+.card {
+    background: white;
+    border-radius: 30px;
+    width: 360px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 25px;
+    box-sizing: border-box;
+}
+
+.card-img-placeholder {
+    width: 100%;
+    height: 320px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
+
+.card-img-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #000;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Active 狀態 */
+.card.active {
+    transform: scale(1.1);
+    border: 6px solid #F4C480;
+    box-shadow: 0 0 40px rgba(244, 196, 128, 0.7);
+    z-index: 10;
+}
+.card:not(.active) { opacity: 0.8; transform: scale(0.95); }
+
+.add-icon { font-size: 120px; color: #F4C480; font-weight: bold; }
+
+.footer-status {
+    position: absolute;
+    bottom: 40px;
+    width: 90%;
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.status-item { display: flex; align-items: center; gap: 15px; }
+.dot {
+    width: 18px; height: 18px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #4CAF50;
+}
+
+/* 虛擬手部游標 */
+#virtual-hand {
+    position: absolute;
+    width: 80px; height: 80px;
+    background-image: url('./hand.png'); /* 注意：CSS在static裡，所以直接找同層級圖片 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 100;
+    transition: top 0.1s, left 0.1s;
+    transform: translate(-30%, -30%);
+    display: none;
+}
+
+/* ========== settings.html 專用樣式 ========== */
+
+.settings-header h1 { font-size: 3.5rem; }
+
+.main-container {
+    display: flex;
+    gap: 40px;
+    width: 80%;
+    max-width: 1000px;
+    height: 600px;
+}
+
+.panel {
+    background: white;
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.left-panel { flex: 3; align-items: center; justify-content: space-around; }
+.right-panel { flex: 2; gap: 20px; background: rgba(255,255,255,0.6); box-shadow: none; }
+
+h2 { color: #555; margin-bottom: 20px; font-size: 1.8rem; }
+
+.upload-zone {
+    width: 100%; height: 150px;
+    border: 3px dashed #F4C480;
+    border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #888; cursor: pointer; transition: 0.3s; background: #FFFCF5;
+}
+.upload-zone:hover { background: #FFF0D4; border-color: #E0A860; }
+
+.text-input-area { width: 100%; margin-top: 20px; }
+textarea {
+    width: 100%; height: 80px; border-radius: 15px; border: 2px solid #EEE;
+    padding: 15px; font-size: 1rem; resize: none; box-sizing: border-box;
+    font-family: inherit;
+}
+textarea:focus { outline: none; border-color: #F4C480; }
+
+.action-btn {
+    background-color: #F4C480; color: white; border: none; padding: 15px 40px;
+    font-size: 1.2rem; border-radius: 50px; cursor: pointer; font-weight: bold;
+    box-shadow: 0 5px 15px rgba(244, 196, 128, 0.4); margin-top: 20px;
+    transition: transform 0.1s;
+}
+.action-btn:active { transform: scale(0.95); }
+
+/* 設定小卡片 */
+.setting-card {
+    background: white; border-radius: 20px; padding: 20px;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s;
+}
+.setting-card:hover { transform: translateY(-3px); }
+.hover-effect:hover { border: 2px solid #6A8CAF !important; background-color: #F8FBFF; }
+
+.icon-box {
+    width: 60px; height: 60px; background: #F0F4F8; border-radius: 15px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.setting-content { flex: 1; }
+.setting-title { font-size: 1.2rem; font-weight: bold; color: #444; }
+
+/* Toggle Switch */
+.toggle-switch { position: relative; width: 50px; height: 28px; display: inline-block; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; }
+input:checked + .slider { background-color: #4CAF50; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Volume Slider */
+.volume-slider { width: 100%; height: 8px; background: #ddd; border-radius: 5px; outline: none; -webkit-appearance: none; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #F4C480; cursor: pointer; }
+
+/* ========== 新增：讀取圈圈 (Loader) 動畫樣式 ========== */
+
+.loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    pointer-events: none; /* 重要：讓滑鼠/手勢可以穿透它點到卡片 */
+    display: none;        /* 預設隱藏 */
+    z-index: 20;
+}
+
+/* 當卡片被選中 (active) 時，才顯示圈圈 */
+.card.active .loader-container {
+    display: block;
+}
+
+.loader-svg circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg); /* 讓起點從正上方開始 */
+    transform-origin: 50% 50%;
+}
+
+/* 底部灰色軌道 */
+.loader-bg {
+    stroke: rgba(0, 0, 0, 0.1);
+}
+
+/* 進度條 (橘色) */
+.loader-progress {
+    stroke: #F4C480;
+    stroke-dasharray: 283; /* 圓周長 2*PI*R (R=45) => ~283 */
+    stroke-dashoffset: 283; /* 283 代表全空，0 代表全滿 */
+    /* transition 會由 JS 動態控制，這裡先不寫 */
+}

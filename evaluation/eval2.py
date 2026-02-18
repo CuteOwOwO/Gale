@@ -1,3 +1,5 @@
+#評估篹法好壞
+
 import cv2
 import mediapipe as mp
 import numpy as np
