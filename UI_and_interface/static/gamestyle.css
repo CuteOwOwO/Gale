@@ -1,0 +1,230 @@
+/* gamestyle.css */
+
+
+:root {
+    --bg-color: #FFF5E6; /* 暖米色背景 */
+    --title-color: #6B8EAD; /* 標題藍灰色 */
+    --card-bg: #FFFFFF;
+    --highlight-color: #F4A261; /* 選中時的橘金色 */
+    --text-color: #333;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* --- 基礎設定 --- */
+* {
+    box-sizing: border-box;
+    user-select: none; /* 禁止選取文字，像 App */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; /* 隱藏捲軸 */
+}
+
+/* --- 頂部標題 --- */
+.header {
+    margin-top: 150px;
+    text-align: center;
+    z-index: 10;
+    position: relative; 
+    width: 100%;       
+}
+
+.back-btn {
+    position: absolute;
+    left: 40px;         
+    top: 50%;           
+    transform: translateY(-50%);
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--title-color);
+    background: var(--card-bg);
+    border: 2px solid var(--title-color);
+    border-radius: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+/* 滑鼠移過去時的特效 */
+.back-btn:hover {
+    background: var(--title-color);
+    color: white;
+    transform: translateY(-50%) scale(1.05); 
+}
+
+.app-title {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--title-color);
+    margin: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+}
+
+.sub-title {
+    font-size: 1.2rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+/* --- 輪播軌道 (核心區域) --- */
+.carousel-container {
+    flex: 1; /* 佔據剩餘空間 */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+    perspective: 1000px; 
+}
+
+.level-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
+    width: max-content; 
+    padding: 0 50vw; /* 讓第一張和最後一張也能置中 */
+}
+
+/* --- 卡片設計 --- */
+.level-card {
+    width: 400px;
+    height: 600px;
+    background: var(--card-bg);
+    border-radius: 25px;
+    margin: 0 20px; /* 卡片間距 */
+    padding: 20px;
+    
+    /* 視覺裝飾 */
+    box-shadow: 0 10px 25px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    
+    /* 動畫過渡 */
+    transition: all 0.3s ease;
+    position: relative;
+    opacity: 0.5; /* 非選中狀態較淡 */
+    transform: scale(0.85); /* 非選中狀態較小 */
+    border: 4px solid transparent;
+}
+
+/* 鎖定狀態 */
+.level-card.locked {
+    filter: grayscale(100%);
+    background: #f4f4f4;
+}
+
+/* 當前選中狀態 */
+.level-card.active {
+    opacity: 1;
+    transform: scale(1.1); /* 放大 */
+    border-color: var(--highlight-color); /* 亮框 */
+    box-shadow: 0 15px 35px rgba(244, 162, 97, 0.4);
+    z-index: 5;
+}
+
+/* --- 圖片區域 --- */
+.card-image-wrapper {
+    width: 100%;
+    height: 350px;
+    background-color: #E0E7EF;
+    border-radius: 15px;
+    overflow: hidden; /* 圓角裁切 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.card-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 確保完整顯示骨架圖，不會被切掉 */
+    padding: 10px; /* 留一點白邊 */
+}
+
+/* 鎖頭圖示 */
+.lock-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.level-card.locked .lock-overlay {
+    opacity: 1;
+}
+
+.card-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--title-color);
+    margin: 10px 0;
+}
+
+/* --- 星星評價 --- */
+.stars-container {
+    display: flex;
+    gap: 5px;
+    font-size: 1.5rem;
+}
+
+.star { color: #DDD; }
+.star.filled { color: #FFD700; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+/* --- 底部與提示 --- */
+.footer {
+    height: 150px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 25px;
+}
+
+.dot {
+    width: 30px;
+    height: 30px;
+    background-color: #4CAF50; /* 綠燈 */
+    border-radius: 50%;
+}
+
+.controls-hint {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    color: #666;
+}

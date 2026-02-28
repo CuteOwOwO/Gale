@@ -5,7 +5,7 @@ import mediapipe as mp
 import numpy as np
 
 
-# --- 📁 設定區 ---
+# ---  設定區 ---
 VIDEO_PATH = 'mp4_home/old.mp4'   
 TARGET_FRAME = 151         
 VISIBILITY_THRESHOLD = 0.5 
@@ -188,3 +188,4 @@ def main_ar_ghost_with_skeleton():
 
 if __name__ == "__main__":
     main_ar_ghost_with_skeleton()
+

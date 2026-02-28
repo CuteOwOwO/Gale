@@ -7,7 +7,7 @@ class LobbyLogic:
         self.COOLDOWN = 1.0  # 動作觸發冷卻時間 (秒)
         
         # 閾值設定
-        self.POINTING_THRESHOLD = 0.05 # 用來判斷指向是否足夠明顯 (X軸差距)
+        self.POINTING_THRESHOLD = 0.1 # 用來判斷指向是否足夠明顯 (X軸差距)
         
     def process(self, multi_hand_landmarks):
         """
