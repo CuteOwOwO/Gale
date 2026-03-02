@@ -1,0 +1,193 @@
+/* static/main_play.css */
+
+/* 基礎設定 */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #FEF6E5; /* 溫暖的米黃色 */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #5C7C99; /* 莫蘭迪藍 */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 防止滾動條出現 */
+}
+
+/* 頂部導航列 */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    height: 60px;
+}
+
+.back-btn {
+    background-color: white;
+    border: 1px solid #D1DDE8;
+    color: #5C7C99;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background-color: #f0f4f8;
+}
+
+.level-title {
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.settings-btn {
+    background-color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    cursor: pointer;
+    font-size: 20px;
+}
+/* 主舞台 (滿版配置) */
+.main-stage {
+    flex: 1;
+    display: flex;
+    padding: 0 30px 30px 30px;
+    height: calc(100vh - 60px); /* 扣掉頂部導航的高度 */
+    box-sizing: border-box;
+}
+
+/* 7:3 佈局容器 */
+.split-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 20px; /* 左右兩個畫面的間距 */
+}
+
+/* 左側 70%：使用者畫面與疊圖 */
+.left-panel {
+    flex: 7;
+    position: relative;
+    background-color: #000;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    overflow: hidden;
+}
+
+/* 右側 30%：老師標準照片 */
+.right-panel {
+    flex: 3;
+    position: relative;
+    background-color: #E8ECEF;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.left-panel img, .right-panel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 讓畫面填滿容器不留黑邊 */
+    display: block;
+}
+
+/* 右側面板的標籤 (顯示"標準示範") */
+.cam-label {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #5C7C99;
+}
+
+/* (原本的 .score-panel 和 .ai-assistant 保持不變，不用動它！) */
+
+/* 懸浮分數面板 (左上角) */
+.score-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    backdrop-filter: blur(5px); /* 毛玻璃效果 */
+}
+
+.score-number {
+    font-size: 48px;
+    font-weight: bold;
+    color: #F44336; /* 預設紅色，JS 會動態修改 */
+    line-height: 1;
+}
+
+.score-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.score-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+}
+
+.score-feedback {
+    font-size: 18px;
+    font-weight: bold;
+    color: #F44336;
+}
+
+/* 懸浮 AI 助理 (正下方) */
+.ai-assistant {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* 確保絕對置中 */
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px 25px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    backdrop-filter: blur(5px);
+    max-width: 80%;
+}
+
+.ai-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #5C7C99;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.ai-message {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
