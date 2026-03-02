@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Pose - 遊戲畫面</title>
+    <link rel="stylesheet" href="/static/main_play.css">
+</head>
+<body>
+    <header class="top-bar">
+        <button class="back-btn" onclick="window.location.href='/index.html'">← 返回大廳</button>
+        <div class="level-title" id="level-title">JUST POSE - 準備中...</div>
+        <button class="settings-btn">⚙️</button>
+    </header>
+
+    <main class="main-stage">
+        <div class="split-layout">
+            
+            <div class="left-panel">
+                <img id="video-stream" src="" alt="等待相機畫面...">
+
+                <div class="score-panel">
+                    <div class="score-number" id="score-number">0</div>
+                    <div class="score-text">
+                        <span class="score-label">Score</span>
+                        <span class="score-feedback" id="score-feedback">Keep going!</span>
+                    </div>
+                </div>
+
+                <div class="ai-assistant">
+                    <div class="ai-icon">AI</div>
+                    <div class="ai-message" id="ai-message">「準備好就可以開始動作囉！」</div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <img id="teacher-ref" src="/static/final_best_poses/best_pose_frame_15.jpg" alt="標準姿勢">
+                <div class="cam-label">標準示範</div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // 取得網址列上的關卡 ID (例如：main_play.html?video=towel&frame=15)
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('video') || 'taichi'; 
+        const frameId = urlParams.get('frame') || '15'; 
+        
+        // 更新標題
+        document.getElementById('level-title').innerText = `JUST POSE - 訓練關卡 (${videoId} - 影格 ${frameId})`;
+
+        // 組合老師的照片路徑
+        const teacherRefImg = document.getElementById('teacher-ref');
+        teacherRefImg.src = `/static/frames/${videoId}_${frameId}.jpg`;
+        console.log(`🖼️ 已載入老師照片：${videoId}_${frameId}.jpg`);
+
+        // 3. 建立 WebSocket 連線 (將 video 和 frame 一起傳給 Python)
+        const wsUrl = `ws://${window.location.host}/ws/game/${videoId}/${frameId}`;
+        const ws = new WebSocket(wsUrl);
+
+        const videoStream = document.getElementById('video-stream');
+        const scoreNumber = document.getElementById('score-number');
+        const scoreFeedback = document.getElementById('score-feedback');
+
+        ws.onopen = () => {
+            console.log(`🌐 已連線到遊戲伺服器，選擇關卡：${videoId} - 影格 ${frameId}`);
+        };
+
+        // 接收後端傳來的影像和分數
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            // 更新即時影像 (Base64)
+            if (data.image) {
+                videoStream.src = "data:image/jpeg;base64," + data.image;
+            }
+
+            // 更新分數與文字顏色
+            if (data.score !== undefined) {
+                const score = Math.round(data.score);
+                scoreNumber.innerText = score;
+
+                // 根據分數調整 UI 顏色
+                if (score > 85) {
+                    scoreNumber.style.color = '#4CAF50'; // 綠色
+                    scoreFeedback.style.color = '#4CAF50';
+                    scoreFeedback.innerText = 'Perfect!';
+                } else if (score > 60) {
+                    scoreNumber.style.color = '#FFC107'; // 黃色
+                    scoreFeedback.style.color = '#FFC107';
+                    scoreFeedback.innerText = 'Good!';
+                } else {
+                    scoreNumber.style.color = '#F44336'; // 紅色
+                    scoreFeedback.style.color = '#F44336';
+                    scoreFeedback.innerText = 'Keep going!';
+                }
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('🔌 與伺服器斷線');
+        };
+    </script>
+</body>
+</html>

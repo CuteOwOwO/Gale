@@ -228,3 +228,42 @@ body {
     font-size: 0.8rem;
     color: #666;
 }
+
+/* ========== 轉圈圈 (Loader) 動畫樣式 ========== */
+
+.loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    pointer-events: none; /* 讓滑鼠/手勢可以穿透它點到卡片 */
+    display: none;        /* 預設隱藏 */
+    z-index: 20;
+}
+
+/* 當卡片被選中 (active) 時，才顯示圈圈 */
+.level-card.active .loader-container {
+    display: block;
+}
+
+.loader-svg circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg); /* 讓起點從正上方開始 */
+    transform-origin: 50% 50%;
+}
+
+/* 底部軌道顏色 */
+.loader-bg {
+    stroke: rgba(0, 0, 0, 0.1);
+}
+
+/* 進度條顏色 (對應你設定的亮橘色) */
+.loader-progress {
+    stroke: var(--highlight-color);
+    stroke-dasharray: 283; 
+    stroke-dashoffset: 283; /* 283 代表全空，0 代表全滿 */
+}
