@@ -128,7 +128,7 @@ async def websocket_game(websocket: WebSocket, video_id: str, frame_id: int):
         while True:
             if capture_requested:
                 print("⏳ 正在擷取最完美的姿勢照片...", flush=True) # 加上 flush=True 強制立刻印出
-                user_img_base64 = game_engine.get_overlay_frame_base64()
+                user_img_base64 = game_engine.get_capture_frame_base64()
                 
                 if user_img_base64:
                     print("🤖 1. 交給 Gemini 生成專屬長輩圖... (約需 5~10 秒)", flush=True)

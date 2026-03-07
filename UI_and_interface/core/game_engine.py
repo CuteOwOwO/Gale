@@ -6,8 +6,6 @@ import numpy as np
 import base64
 import json
 import os
-
-
 from core.pose_utils import get_torso_geometry, compare_poses_strict
 
 class GameEngine:
@@ -36,7 +34,7 @@ class GameEngine:
         print(f"[{video_id}] 正在準備 AR 素材 (影片: {self.video_path}, 影格: {self.target_frame})...")
         self._pre_process_teacher()
 
-        self.filter_type = random.choice(["rabbit", "sunglasses"]) 
+        self.filter_type = random.choice(["rabbit"]) 
         
         if self.filter_type == "rabbit":
             filter_path = "static/rabbit.png"
@@ -128,6 +126,7 @@ class GameEngine:
         
         results = self.pose.process(frame_rgb)
         current_score = 0
+        capture_frame = frame.copy()
         
         # 預設沒有呼叫教練
         is_calling_coach = False 
@@ -192,6 +191,13 @@ class GameEngine:
                 landmark_drawing_spec=self.mp_drawing.DrawingSpec(color=skel_color, thickness=2, circle_radius=3),
                 connection_drawing_spec=self.mp_drawing.DrawingSpec(color=skel_color, thickness=2)
             )
+            self.mp_drawing.draw_landmarks(
+                capture_frame, 
+                results.pose_landmarks, 
+                self.mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=self.mp_drawing.DrawingSpec(color=skel_color, thickness=2, circle_radius=3),
+                connection_drawing_spec=self.mp_drawing.DrawingSpec(color=skel_color, thickness=2)
+            )
 
             if hasattr(self, 'filter_img') and self.filter_img is not None:
                 import math
@@ -225,6 +231,7 @@ class GameEngine:
                             offset_y = cy - int(target_h * 1.2) 
                             
                             frame = self.overlay_transparent(frame, rotated_filter, offset_x, offset_y)
+                            capture_frame = self.overlay_transparent(capture_frame, rotated_filter, offset_x, offset_y)
                             
                 # -------------------------
                 # 抽中墨鏡的邏輯
@@ -260,7 +267,10 @@ class GameEngine:
                             offset_y = cy - target_h // 2 
                             
                             frame = self.overlay_transparent(frame, rotated_filter, offset_x, offset_y)
+                            capture_frame = self.overlay_transparent(capture_frame, rotated_filter, offset_x, offset_y)
+
         self.latest_overlay_frame = frame.copy()
+        self.latest_capture_frame = capture_frame.copy()
 
         _, buffer = cv2.imencode('.jpg', frame)
         jpg_as_text = base64.b64encode(buffer).decode('utf-8')
@@ -278,4 +288,14 @@ class GameEngine:
             _, buffer = cv2.imencode('.jpg', self.latest_overlay_frame)
             jpg_as_text = base64.b64encode(buffer).decode('utf-8')
             return jpg_as_text
+        return None
+    
+    def get_capture_frame_base64(self):
+        """
+        取得「沒有老師疊圖」，但有「骨架與濾鏡」的畫面 (Base64格式)
+        專門用來產生長輩圖或給教練分析
+        """
+        if hasattr(self, 'latest_capture_frame'):
+            _, buffer = cv2.imencode('.jpg', self.latest_capture_frame)
+            return base64.b64encode(buffer).decode('utf-8')
         return None
