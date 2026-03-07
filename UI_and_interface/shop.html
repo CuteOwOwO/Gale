@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Pose - 造型商城</title>
+    <style>
+        /* ========== 全局設計 (對齊 Lobby 風格) ========== */
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #FFF8E7 0%, #FFE4C4 100%); /* 溫馨米黃 */
+            height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #333; overflow: hidden;
+        }
+
+        /* 頂部導覽列 */
+        header { width: 100%; position: absolute; top: 150px; text-align: center; }
+        .back-btn {
+            position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+            font-size: 1.5rem; color: #6A8CAF; background: rgba(255,255,255,0.6); 
+            border-radius: 30px; border: none; cursor: pointer; padding: 10px 20px; transition: 0.3s;
+        }
+        .back-btn:hover { background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h1 { color: #6A8CAF; font-weight: 900; margin: 0; font-size: 3.5rem; }
+        .stars-display {
+            position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+            font-size: 1.8rem; font-weight: bold; color: #F4C480; background: white;
+            padding: 10px 25px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* ========== 商城佈局 ========== */
+        .shop-layout {
+            display: flex; align-items: center; justify-content: center; gap: 40px;
+            width: 95%; max-width: 1300px; margin-top: 120px; /* 留空間給飄浮的預覽框 */
+        }
+
+        /* 統一卡片樣式 */
+        .shop-card {
+            background: white; border-radius: 40px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s;
+            padding: 20px; text-align: center; box-sizing: border-box;
+        }
+
+        /* 側邊卡片：左右對齊的關鍵 */
+        .side-card { width: 260px; height: 350px; opacity: 0.7; }
+        .side-card:hover { transform: scale(1.05); opacity: 1; }
+        
+        /* 中間主卡片 */
+        .center-card {
+            width: 360px; height: 480px; border: 6px solid #F4C480;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15); position: relative;
+        }
+
+        /* 右側群組 (預覽 + 卡片) */
+        .right-group { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+        /* 造型預覽框 (絕對定位，往上移動) */
+        .preview-card {
+            width: 350px; height: 350px; border-radius: 40px; background: #000;
+            position: absolute; top: -400px; /* 往上飄移 */
+            /*往右*/ left: 130%; transform: translateX(-50%);
+            overflow: hidden; border: 6px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #fixed-filter { 
+            position: absolute; top: 10%; left: 50%; transform: translateX(-50%); 
+            width: 50%; pointer-events: none; 
+        }
+
+        /* 內容樣式 */
+        .item-img { width: 150px; height: 150px; object-fit: contain; margin-bottom: 15px; }
+        .center-card .item-img { width: 220px; height: 220px; }
+        .item-title { font-size: 1.5rem; font-weight: bold; color: #333; }
+        .item-price { font-size: 1.5rem; color: #F4C480; font-weight: bold; margin: 10px 0; }
+        
+        .buy-btn {
+            background-color: #F4C480; color: white; border: none; padding: 15px 40px;
+            font-size: 1.5rem; border-radius: 50px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(244, 196, 128, 0.4);
+        }
+
+        /* 底部狀態列 */
+        .footer-status {
+            position: absolute; bottom: 30px; width: 90%; display: flex;
+            justify-content: center; gap: 60px; font-size: 1.5rem; font-weight: 500;
+        }
+        .status-item { display: flex; align-items: center; gap: 15px; }
+        .dot { width: 18px; height: 18px; background-color: #4CAF50; border-radius: 50%; box-shadow: 0 0 8px #4CAF50; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="back-btn" onclick="window.location.href='/index.html'">← 返回</button>
+        <h1>JUST SHOP</h1>
+        <div class="stars-display">⭐ 150</div>
+    </header>
+
+    <div class="shop-layout">
+        
+        <div class="shop-card side-card" onclick="moveCarousel(-1)">
+            <img id="left-img" src="static/sunglasses.png" class="item-img" alt="商品">
+            <div id="left-title" class="item-title">酷炫墨鏡</div>
+        </div>
+
+        <div class="shop-card center-card">
+            <img id="center-img" src="static/rabbit.png" class="item-img" alt="商品">
+            <div id="center-title" class="item-title" style="font-size: 2.2rem;">萌萌兔耳朵</div>
+            <div id="center-price" class="item-price">⭐ 50</div>
+            <button class="buy-btn" onclick="buyCurrentItem()">兌換裝備</button>
+        </div>
+
+        <div class="right-group">
+            <div class="preview-card">
+                <video id="webcam" autoplay playsinline></video>
+                <img id="fixed-filter" src="static/rabbit.png" alt="濾鏡">
+            </div>
+
+            <div class="shop-card side-card" onclick="moveCarousel(1)">
+                <img id="right-img" src="static/towel.png" class="item-img" alt="商品">
+                <div id="right-title" class="item-title">神秘毛巾</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-status">
+        <div class="status-item"><span class="dot"></span> Camera On</div>
+        <div class="status-item">📶 WiFi Connected</div>
+    </div>
+
+    <script>
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('webcam').srcObject = stream;
+            } catch (err) {
+                console.error("無法存取攝影機：", err);
+            }
+        }
+        window.onload = startWebcam;
+
+        const shopItems = [
+            { name: '萌萌兔耳朵', price: 50, img: 'static/rabbit.png' },
+            { name: '酷炫黑墨鏡', price: 80, img: 'static/sunglasses.png' },
+            { name: '神秘毛巾', price: 150, img: 'static/towel.png' }
+        ];
+
+        let currentIndex = 0;
+
+        function moveCarousel(direction) {
+            currentIndex = (currentIndex + direction + shopItems.length) % shopItems.length;
+            
+            let leftIndex = (currentIndex - 1 + shopItems.length) % shopItems.length;
+            let rightIndex = (currentIndex + 1) % shopItems.length;
+
+            // 更新中間
+            document.getElementById('center-title').innerText = shopItems[currentIndex].name;
+            document.getElementById('center-price').innerText = "⭐ " + shopItems[currentIndex].price;
+            document.getElementById('center-img').src = shopItems[currentIndex].img;
+
+            // 更新左右
+            document.getElementById('left-title').innerText = shopItems[leftIndex].name;
+            document.getElementById('left-img').src = shopItems[leftIndex].img;
+            document.getElementById('right-title').innerText = shopItems[rightIndex].name;
+            document.getElementById('right-img').src = shopItems[rightIndex].img;
+        }
+
+        function buyCurrentItem() {
+            alert("🎉 兌換成功！「" + shopItems[currentIndex].name + "」已解鎖。");
+        }
+    </script>
+</body>
+</html>
