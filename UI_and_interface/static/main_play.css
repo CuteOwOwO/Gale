@@ -191,3 +191,41 @@ body {
     font-weight: bold;
     color: #333;
 }
+
+/* ========== 倒數相關 ========== */
+
+/* 倒數計時疊加層 */
+.countdown-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 150px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    display: none; /* ⚠️ 預設隱藏 */
+    z-index: 10;
+    pointer-events: none; /* 讓滑鼠點擊可以穿透 */
+}
+
+/* 通關彈出視窗 (滿版遮罩) */
+.success-modal {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* 半透明黑底 */
+    display: none; /* ⚠️ 預設一定要隱藏！等 JS 呼叫才顯示 */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 999;
+    backdrop-filter: blur(5px);
+}
+
+.success-modal h2 {
+    font-size: 60px;
+    color: #4CAF50;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+}
