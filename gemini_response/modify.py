@@ -9,8 +9,8 @@ API_KEY = "AIzaSyCIoKxxbMM_yewszbrOvTHMvmnadniMv9k"
 MODEL_NAME = "gemini-2.5-flash" 
 
 # 圖片路徑 (請修改成你的實際路徑)
-TEACHER_IMG_PATH = r"C:\Users\Angus\Desktop\dance\captured_poses\auto_223952_274593_skel.png"  # 正確的標準動作 (老師/孫子)
-USER_IMG_PATH = r"C:\Users\Angus\Desktop\dance\captured_poses\auto_221933_286498_skel.png"  # 使用者目前的動作 (阿嬤)
+TEACHER_IMG_PATH = r"C:\Users\Angus\Desktop\dance\UI_and_interface\static\frames\taichi_15.jpg"  # 正確的標準動作 (老師/孫子)
+USER_IMG_PATH = r"C:\Users\Angus\Desktop\dance\gemini_response\WIN_20260306_22_49_07_Pro.jpg"  # 使用者目前的動作 (阿嬤)
 # -------------
 
 client = genai.Client(api_key=API_KEY)
@@ -50,13 +50,12 @@ def get_ai_instruction():
                 "1. Output ONLY the spoken instruction.",
                 "2. Language: Traditional Chinese (Taiwanese Mandarin style).",
                 "3. Tone: Warm, encouraging, patient, and filial.",
-                "4. Length: Keep it under 20 words (short and clear for TTS).",
                 "5. Example: '阿嬤，右手再舉高一點點，對，像我這樣！'",
                 "6. If the pose is correct, praise her."
             ],
             config=types.GenerateContentConfig(
                 temperature=0.7, # 讓語氣稍微活潑一點
-                max_output_tokens=100
+                max_output_tokens=1000
             )
         )
         

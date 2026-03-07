@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 
 # --- 設定區 ---
-INPUT_IMAGE = 'ma.png'   # 你的輸入照片路徑
+INPUT_IMAGE = r'C:\Users\Angus\Desktop\dance\gemini_response\senior_cards\senior_card_1772437414.png'   # 你的輸入照片路徑
 OUTPUT_IMAGE = 'output.jpg' # 輸出結果路徑
 # -------------
 
@@ -36,8 +36,8 @@ def process_single_image(image_path, output_path):
                 mp_pose.POSE_CONNECTIONS,
                 # 關鍵點：保持預設樣式 (彩色點)
                 landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style(),
-                # 連線：設定為黑色 (BGR: 0, 0, 0)
-                connection_drawing_spec=mp_drawing.DrawingSpec(color=(0, 0, 0), thickness=2)
+                # 連線：設定為白色 (BGR: 255, 255, 255)
+                connection_drawing_spec=mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2)
             )
         else:
             print("未偵測到骨架。")

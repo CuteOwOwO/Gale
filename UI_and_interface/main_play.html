@@ -18,6 +18,8 @@
             
             <div class="left-panel">
                 <img id="video-stream" src="" alt="等待相機畫面...">
+                
+                <div id="countdown-overlay" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; font-weight: bold; color: red; z-index: 9999; text-shadow: 0 0 20px yellow; pointer-events: none;">3</div>
 
                 <div class="score-panel">
                     <div class="score-number" id="score-number">0</div>
@@ -34,28 +36,53 @@
             </div>
 
             <div class="right-panel">
-                <img id="teacher-ref" src="/static/final_best_poses/best_pose_frame_15.jpg" alt="標準姿勢">
+                <img id="teacher-ref" src="" alt="標準姿勢">
                 <div class="cam-label">標準示範</div>
             </div>
 
         </div>
     </main>
 
+    <div id="success-modal" class="success-modal">
+        <h2>完美通關！</h2>
+       <p id="loading-text" style="font-size: 24px; color: #FFEB3B; font-weight: bold; text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);">
+            正在為您生成圖片...
+        </p>
+
+        <style>
+        @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.6; transform: scale(0.98); }
+        }
+        #loading-text {
+            animation: pulse 1.5s infinite;
+        }
+        </style>
+        <div id="result-container" style="margin-top: 30px;"></div>
+    </div>
+
+    <div id="coach-countdown-overlay" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: bold; color: #00000098; z-index: 9999; text-shadow: 0 0 20px white; text-align: center; pointer-events: none; background-color: rgba(255, 255, 255, 0.6); padding: 30px 50px; border-radius: 20px; backdrop-filter: blur(5px);">
+        請擺出疑問姿勢... 
+        <br><span id="coach-timer" style="font-size: 120px; color: #FFEB3B; text-shadow: 0 0 10px rgba(0,0,0,0.5);">3</span>
+    </div>
+
+    <div id="coach-modal" class="success-modal">
+        <h2>AI 姿勢分析中</h2>
+        <p id="coach-loading-text" style="font-size: 24px; color: #00BCD4; font-weight: bold; animation: pulse 1.5s infinite;">正在檢視您的動作與標準示範的差異，請稍候...</p>
+        <div id="coach-result-container" style="margin-top: 30px;">
+        </div>
+    </div>
+
     <script>
-        // 取得網址列上的關卡 ID (例如：main_play.html?video=towel&frame=15)
         const urlParams = new URLSearchParams(window.location.search);
         const videoId = urlParams.get('video') || 'taichi'; 
         const frameId = urlParams.get('frame') || '15'; 
-        
-        // 更新標題
-        document.getElementById('level-title').innerText = `JUST POSE - 訓練關卡 (${videoId} - 影格 ${frameId})`;
 
-        // 組合老師的照片路徑
+        document.getElementById('level-title').innerText = `JUST POSE - 訓練關卡 (${videoId} - 影格 ${frameId})`;
         const teacherRefImg = document.getElementById('teacher-ref');
         teacherRefImg.src = `/static/frames/${videoId}_${frameId}.jpg`;
-        console.log(`🖼️ 已載入老師照片：${videoId}_${frameId}.jpg`);
 
-        // 3. 建立 WebSocket 連線 (將 video 和 frame 一起傳給 Python)
         const wsUrl = `ws://${window.location.host}/ws/game/${videoId}/${frameId}`;
         const ws = new WebSocket(wsUrl);
 
@@ -63,40 +90,213 @@
         const scoreNumber = document.getElementById('score-number');
         const scoreFeedback = document.getElementById('score-feedback');
 
+        // 倒數與通關邏輯 =================
+        const PASS_SCORE = 50; // 測試時可以把分數調低，例如 50
+        let isCountingDown = false;
+        let countdownTimer = null;
+        let countdownValue = 5;
+        let isProcessing = false; // 是否已經通關正在處理中
+
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const successModal = document.getElementById('success-modal');
+
+        function startCountdown() {
+            if (isCountingDown) return;
+            isCountingDown = true;
+            countdownValue = 3;
+            countdownOverlay.innerText = countdownValue;
+            countdownOverlay.style.display = 'block';
+
+            countdownTimer = setInterval(() => {
+                countdownValue--;
+                if (countdownValue > 0) {
+                    countdownOverlay.innerText = countdownValue;
+                } else {
+                    // 倒數到 0，觸發通關！
+                    clearInterval(countdownTimer);
+                    triggerSuccess();
+                }
+            }, 1000); // 每秒倒數一次
+        }
+
+        function stopCountdown() {
+            if (!isCountingDown) return;
+            isCountingDown = false;
+            clearInterval(countdownTimer);
+            countdownOverlay.style.display = 'none';
+        }
+
+        function triggerSuccess() {
+            isProcessing = true; // 鎖定狀態
+            countdownOverlay.style.display = 'none';
+            successModal.style.display = 'flex'; // 顯示通關遮罩
+            
+            // 透過 WebSocket 告訴後端：我要拍照！
+            ws.send(JSON.stringify({ action: "capture" }));
+            console.log("📸 已發送拍照請求給後端！");
+        }
+        // =======================================================
+
         ws.onopen = () => {
-            console.log(`🌐 已連線到遊戲伺服器，選擇關卡：${videoId} - 影格 ${frameId}`);
+            console.log(`🌐 已連線到遊戲伺服器...`);
         };
 
-        // 接收後端傳來的影像和分數
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+
+            // 先檢查是不是最終成功的長輩圖結果！(VIP 通道)
+            if (data.status === "success") {
+                const resultContainer = document.getElementById('result-container');
+                resultContainer.innerHTML = `
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: center;">
+                        <img src="data:image/jpeg;base64,${data.final_image}" style="max-height: 400px; border: 5px solid white; border-radius: 10px;">
+                        <div style="text-align: center;">
+                            <img src="data:image/png;base64,${data.qr_code}" style="width: 200px; height: 200px; border: 5px solid white; border-radius: 10px; background: white;">
+                            <p style="margin-top: 10px; font-weight: bold;">掃描分享給群組好友！</p>
+                            <button onclick="window.location.href='/index.html'" style="margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; border-radius: 10px; background-color: #4CAF50; color: white; border: none;">回主畫面</button>
+                        </div>
+                    </div>
+                `;
+                // 把原本的「請稍候...」字眼隱藏
+                document.querySelector('.success-modal p').style.display = 'none';
+                return; // 顯示完結果就可以結束這回合了
+            }
+
+            if (data.status === "coach_success") {
+                const coachResultContainer = document.getElementById('coach-result-container');
+                coachResultContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+
+                            <h1 style="color: #FFEB3B; font-size: 50px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 4px 15px rgba(255, 235, 59, 0.4); margin: 0;">教練說：</h1>
+                        </div>
+                        
+                        <p style="color: #ffffff; font-size: 38px; line-height: 1.6; font-weight: 600; background: linear-gradient(145deg, rgba(0, 188, 212, 0.2), rgba(0, 0, 0, 0.4)); padding: 40px 60px; border-radius: 24px; border: 1px solid rgba(0, 188, 212, 0.5); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); max-width: 85%; text-align: left; position: relative;">
+                            <span style="color: rgba(0, 188, 212, 0.4); font-size: 80px; font-family: serif; position: absolute; top: 0px; left: 15px; line-height: 1;">"</span>
+                            <span style="position: relative; z-index: 1;">${data.coach_text}</span>
+                            <span style="color: rgba(0, 188, 212, 0.4); font-size: 80px; font-family: serif; position: absolute; bottom: -40px; right: 15px; line-height: 1;">"</span>
+                        </p>
+
+                        <button onclick="resumeGame()" 
+                            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(0,188,212,0.6)'" 
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.4)'" 
+                            style="margin-top: 45px; padding: 18px 50px; font-size: 28px; cursor: pointer; border-radius: 50px; background: linear-gradient(90deg, #00BCD4, #009688); color: white; border: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: all 0.2s ease; letter-spacing: 1px;">
+                            我知道了，繼續動作！
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('coach-loading-text').style.display = 'none';
+                
+                
+                const utterance = new SpeechSynthesisUtterance(data.coach_text);
+                utterance.lang = 'zh-TW'; // 設定為台灣中文
+                utterance.rate = 0.9;     // 語速稍微放慢一點，適合長輩聽
+                utterance.pitch = 1.0;    // 音調正常
+                window.speechSynthesis.speak(utterance);
+                
+                
+                return; 
+            }
             
-            // 更新即時影像 (Base64)
+            // 如果已經通關正在處理中，就不再更新普通的視訊畫面 (凍結畫面)
+            if (isProcessing) return; 
+
+
+            if (data.call_coach === true) {
+                startCoachCountdown();
+            }
+
+            // 正常遊戲中的視訊與分數更新
             if (data.image) {
                 videoStream.src = "data:image/jpeg;base64," + data.image;
             }
 
-            // 更新分數與文字顏色
             if (data.score !== undefined) {
                 const score = Math.round(data.score);
                 scoreNumber.innerText = score;
 
-                // 根據分數調整 UI 顏色
-                if (score > 85) {
-                    scoreNumber.style.color = '#4CAF50'; // 綠色
+                if (score >= PASS_SCORE) {
+                    scoreNumber.style.color = '#4CAF50';
                     scoreFeedback.style.color = '#4CAF50';
-                    scoreFeedback.innerText = 'Perfect!';
+                    scoreFeedback.innerText = 'Perfect! 保持住！';
+                    console.log('✅ 分數達標，開始倒數！');
+                    // 分數達標，開始或繼續倒數
+                    startCountdown();
+                    
                 } else if (score > 60) {
-                    scoreNumber.style.color = '#FFC107'; // 黃色
+                    scoreNumber.style.color = '#FFC107';
                     scoreFeedback.style.color = '#FFC107';
-                    scoreFeedback.innerText = 'Good!';
+                    scoreFeedback.innerText = 'Good! 再標準一點！';
+                    
+                    // 分數掉下來了，中斷倒數
+                    stopCountdown();
                 } else {
-                    scoreNumber.style.color = '#F44336'; // 紅色
+                    scoreNumber.style.color = '#F44336';
                     scoreFeedback.style.color = '#F44336';
                     scoreFeedback.innerText = 'Keep going!';
+                    
+                    // 分數掉下來了，中斷倒數
+                    stopCountdown();
                 }
             }
         };
+
+        //教練倒數邏輯 =================
+        let isCoachCountingDown = false;
+        const coachCountdownOverlay = document.getElementById('coach-countdown-overlay');
+        const coachTimerSpan = document.getElementById('coach-timer');
+        const coachModal = document.getElementById('coach-modal');
+
+        function startCoachCountdown() {
+            // 如果已經在倒數，或是已經通關了，就不重複觸發
+            if (isCoachCountingDown || isProcessing) return;
+            
+            isCoachCountingDown = true;
+            let coachCountdownValue = 3;
+            
+            coachTimerSpan.innerText = coachCountdownValue;
+            coachCountdownOverlay.style.display = 'block';
+            console.log('🗣️ 觸發呼叫教練，開始給予 3 秒準備時間！');
+
+            let timer = setInterval(() => {
+                coachCountdownValue--;
+                if (coachCountdownValue > 0) {
+                    coachTimerSpan.innerText = coachCountdownValue;
+                } else {
+                    // 倒數到 0，觸發拍照分析！
+                    clearInterval(timer);
+                    triggerCoachAnalyze();
+                }
+            }, 1000);
+        }
+
+        function triggerCoachAnalyze() {
+            isProcessing = true; // 一樣鎖定遊戲狀態，凍結畫面
+            coachCountdownOverlay.style.display = 'none';
+            coachModal.style.display = 'flex'; // 顯示 AI 分析遮罩
+            
+            // 🌟 傳送一個 "新的" 指令給後端，區分「過關長輩圖」和「教練分析」
+            ws.send(JSON.stringify({ action: "analyze_pose" }));
+            console.log("📸 已發送 AI 動作分析請求給後端！");
+        }
+
+        function resumeGame() {
+            // 隱藏教練遮罩
+            document.getElementById('coach-modal').style.display = 'none';
+            // 停止正在播放的語音 (避免使用者提前關閉卻還在唸)
+            window.speechSynthesis.cancel();
+            
+            // 重置狀態，解凍畫面
+            isProcessing = false;
+            isCoachCountingDown = false;
+            
+            // 把 Loading 文字加回來，清空上次的結果，為下一次呼叫做準備
+            document.getElementById('coach-loading-text').style.display = 'block';
+            document.getElementById('coach-result-container').innerHTML = '';
+            
+            console.log("▶️ 繼續遊戲！");
+        }
 
         ws.onclose = () => {
             console.log('🔌 與伺服器斷線');
