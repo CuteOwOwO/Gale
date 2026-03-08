@@ -57,7 +57,7 @@
 - **後端 (Backend)**: Python 3.9, FastAPI, Uvicorn.
 - **電腦視覺 (Computer Vision)**: OpenCV, MediaPipe
 - **人工智慧 (AI)**: Google GenAI API.
-- **第三方服務 **: ImgBB (圖像託管).
+- **第三方服務**: ImgBB (圖像託管).
 
 ---
 
