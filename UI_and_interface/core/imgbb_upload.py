@@ -1,7 +1,8 @@
 import requests
+from core.config import require_env
 
 # 將剛剛拿到的 API Key 貼在下面這裡
-IMGBB_API_KEY = "417601fefc1f8b6cbb1caede5c5f9bc5" 
+IMGBB_API_KEY = require_env("IMGBB_API_KEY")
 
 def upload_base64_to_imgbb(base64_image: str) -> str:
     """
