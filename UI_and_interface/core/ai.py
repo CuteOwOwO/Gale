@@ -6,6 +6,7 @@ import io
 from PIL import Image
 import time
 import base64
+from core.config import require_env
 import sys # 新增：用於處理系統編碼
 
 # --- 核心修正：解決 Windows 編碼錯誤 ---
@@ -16,7 +17,7 @@ if sys.platform == "win32":
 # ---------------------------
 
 # --- 設定區 (API Key 和模型) ---
-API_KEY = "AIzaSyCIoKxxbMM_yewszbrOvTHMvmnadniMv9k"  
+API_KEY = require_env("GEMINI_API_KEY")
 MODEL_NAME = "models/gemini-3.1-flash-image-preview" 
 OUTPUT_DIR = "senior_cards"
 

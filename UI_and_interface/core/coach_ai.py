@@ -3,9 +3,10 @@ import base64
 import os
 from google import genai
 from google.genai import types
+from core.config import require_env
 
 # 🌟 請記得填入你實際的 API KEY
-API_KEY = "AIzaSyCIoKxxbMM_yewszbrOvTHMvmnadniMv9k"  
+API_KEY = require_env("GEMINI_API_KEY")
 MODEL_NAME = "gemini-2.5-flash" 
 
 client = genai.Client(api_key=API_KEY)
@@ -49,7 +50,8 @@ def get_coach_instruction(user_img_base64: str, video_id: str, frame_id: int) ->
                 "2. Language: Traditional Chinese (Taiwanese Mandarin style).",
                 "3. Tone: Warm, encouraging, patient, and filial.",
                 "5. Example: '阿嬤，右手再舉高一點點，身體要再向右轉一點點喲！'",
-                "6. If the pose is correct, praise her."
+                "6. If the pose is correct, praise her.",
+                "7. Don't mention '向圖片一樣' or something like that, just give the instruction directly."
             ],
             config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=2000)
         )
